@@ -46,7 +46,7 @@
 # POSSIBILITY OF SUCH DAMAGE.                                                  #
 ################################################################################
 
-import sys, serial, threading, random, Queue, time, pyaudio, wave, datetime
+import sys, serial, threading, random, queue, time, pyaudio, wave, datetime
 import serial.tools.list_ports
 from PyQt4 import QtGui, QtCore
 #serialPort = "/dev/ttyACM0"
@@ -214,7 +214,7 @@ class mainWindow(QtGui.QMainWindow):
 			try:
 				tag = self.queue.get(0)
 				self.handleTag(tag)
-			except Queue.Empty:
+			except queue.Empty:
 				pass
 
 	################################## HANDLE TAG ##################################
@@ -283,7 +283,7 @@ class newPersonWidget(QtGui.QWidget):
 		rfid = str(self.rfidTag.text())
 		name = str(self.username.text())
 
-		print rfid, name
+		print(rfid, name)
 
 		self.parentWindow.splitterWidget.IDRelation[rfid] = name
 		self.parentWindow.splitterWidget.updateNameTable()
@@ -401,7 +401,7 @@ class mainWidget(QtGui.QWidget):
 	################################################################################
 	tagList = []
 	def loadTagTable (self, filename):
-		print "Tried to open file", filename
+		print("Tried to open file", filename)
 		self.newTagTable()
 		loadFile = open(filename)
 		for line in loadFile:
@@ -416,7 +416,7 @@ class mainWidget(QtGui.QWidget):
 	# and saves it to a user specified location                                    #
 	################################################################################
 	def saveTagTable (self, filename):
-		print "Tried to save file", filename
+		print("Tried to save file", filename)
 		savefile = open(filename,'w')
 		for tag in self.tagList:
 			csvLine = tag
@@ -453,7 +453,7 @@ class mainWidget(QtGui.QWidget):
 	def editTag(self, listItem):
 		tagToModify = str(listItem.text())
 		if tagToModify[0:12] == "Unknown Tag ":
-			print "UNKNOWN TAG"
+			print("UNKNOWN TAG")
 			tag = tagToModify[12:] 
 			# Call edit function with just the RFID Tag
 			self.nperson = newPersonWidget(self.parent, tag=tag)
@@ -473,19 +473,19 @@ class ThreaderParent:
 	# the serial port to read from                                                 #
 	################################################################################
 	def __init__(self):
-		print "WTHAT HE HELL"
+		print("WTHAT HE HELL")
 		# create a queue for message passing
-		self.queue = Queue.Queue()
-		print "CREATED QUEUE"
+		self.queue = queue.Queue()
+		print("CREATED QUEUE")
 		#instanciate the gui
 		self.gui = mainWindow(self.queue, self.endApplication)
 		self.gui.show()
-		print "CRATED GUI"
+		print("CRATED GUI")
 		# create a timer to periodicly check the queue to see if it has tags
 		self.timer = QtCore.QTimer()
 		QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.periodicCall)
 		self.timer.start(100)
-		print "CRATED TIMER"
+		print("CRATED TIMER")
 		# Create a thread to read the serial port
 		self.running = 1
 		self.openPorts = serial.tools.list_ports.comports()
@@ -514,7 +514,7 @@ class ThreaderParent:
 			for port in currentPorts:
 				if port not in self.openPorts:
 					newPorts.append(port)
-					print "NEW PORT:", port
+					print("NEW PORT:", port)
 					self.thread.append(threading.Thread(target=self.workerThread,args=(port)))
 					self.thread[-1].start()
 			
@@ -524,7 +524,7 @@ class ThreaderParent:
 			for port in self.openPorts:
 				if port not in currentPorts:
 					closedPorts.append(port)
-					print "CLOSED PORT:", port
+					print("CLOSED PORT:", port)
 
 			# set the current ports to the open ports
 			###print "RESETTING PORTS"
@@ -542,7 +542,7 @@ class ThreaderParent:
 	# can quit when the main thread does                                           #
 	################################################################################
 	def endApplication(self):
-		print "ENDING"
+		print("ENDING")
 		self.running = 0
 
 	################################# WORKER THREAD ################################
@@ -555,20 +555,20 @@ class ThreaderParent:
 		try:
 			serialConnection = serial.Serial(port=serialPort, baudrate=serialBaud, timeout=0)
 		except:
-			print "ERROR INITILIZING THE CONNECTION TO", serialPort, "CLOSING THREAD"
+			print("ERROR INITILIZING THE CONNECTION TO", serialPort, "CLOSING THREAD")
 			return
 
 
-		print "STARTING WORKER THREAD:"
-		print " WORKER PORT:", serialPort
-		print " WORKER NAME:", serialName
-		print " WORKER VIN:", serialVIN
+		print("STARTING WORKER THREAD:")
+		print(" WORKER PORT:", serialPort)
+		print(" WORKER NAME:", serialName)
+		print(" WORKER VIN:", serialVIN)
 		fulltag = ""
 		while self.running:
 			try:
 				tag = serialConnection.read()
 			except:
-				print "ERROR READING FROM ", serialPort, "CLOSING THREAD"
+				print("ERROR READING FROM ", serialPort, "CLOSING THREAD")
 				return
 			if (tag == '\n'):
 				self.queue.put(fulltag)
@@ -628,7 +628,7 @@ def main():
 	app = QtGui.QApplication(sys.argv)
 	display = ThreaderParent()
 	app.exec_()
-	print "DONE"
+	print("DONE")
 	#display.thread.terminate()
 	display.running = False
 	#sys.exit()
